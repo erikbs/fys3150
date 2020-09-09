@@ -7,7 +7,7 @@ using namespace arma;
 
 void Tridiagonal::init(unsigned int n, vec a, vec b, vec c) {
 	#ifdef DEBUG
-	cout << "DEBUG: init kalla med argument:" << endl;
+	cout << "DEBUG: init() kalla med argument:" << endl;
 	cout << "n=" << n << endl;
 	a.print("a=");
 	b.print("b=");
@@ -25,9 +25,9 @@ void Tridiagonal::init(unsigned int n, vec a, vec b, vec c) {
 }
 
 // Generell utgåve av løysingsalgoritmen
-vec Tridiagonal::solve(vec y) {
+vec Tridiagonal::solve_gen(vec y) {
 	#ifdef DEBUG
-	cout << "DEBUG: solve kalla med argument:" << endl;
+	cout << "DEBUG: solve_gen() kalla med argument:" << endl;
 	y.print("y=");
 	#endif
 
@@ -35,12 +35,12 @@ vec Tridiagonal::solve(vec y) {
 		throw invalid_argument("Ugild lengd på inngangsvektoren");
 	}
 
-	// Sett opp vektorane b̃, ỹ og v
+	// Set opp vektorane b̃, ỹ og v
 	vec bn = vec(n);
 	vec yn = vec(n);
 	vec v  = vec(n);
 
-	// Sett opp klokka
+	// Set opp klokka
 	clock_t tick, tock;
 	tick = clock();
 
@@ -52,7 +52,7 @@ vec Tridiagonal::solve(vec y) {
 		yn(i) = y(i) - (this->a(i - 1) * yn(i - 1)) / bn(i - 1);
 	}
 
-	// Sett opp løysingsvektoren
+	// Set opp løysingsvektoren
 	v(n - 1) = yn(n - 1) / bn(n - 1);
 
 	// Attover-steget
@@ -62,11 +62,11 @@ vec Tridiagonal::solve(vec y) {
 
 	// Meld om tida
 	tock = clock();
-	cout << "solve() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
+	cout << "solve_gen() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
 
 	#ifdef DEBUG
-	cout << "DEBUG: solve gav løysinga:" << endl;
-	v.print("v= (gen)");
+	cout << "DEBUG: solve_gen() gav løysinga:" << endl;
+	v.print("v=");
 	#endif
 
 	return v;
@@ -75,7 +75,7 @@ vec Tridiagonal::solve(vec y) {
 // Spesialisert utgåve av løysingsalgoritmen
 vec Tridiagonal::solve_spec(vec y) {
 	#ifdef DEBUG
-	cout << "DEBUG: solve_spec kalla med argument:" << endl;
+	cout << "DEBUG: solve_spec() kalla med argument:" << endl;
 	y.print("y=");
 	#endif
 
@@ -83,12 +83,12 @@ vec Tridiagonal::solve_spec(vec y) {
 		throw invalid_argument("Ugild lengd på inngangsvektoren");
 	}
 
-	// Sett opp vektorane b̃, ỹ og v
+	// Set opp vektorane b̃, ỹ og v
 	vec bn = vec(n);
 	vec yn = vec(n);
 	vec v  = vec(n);
 
-	// Sett opp klokka
+	// Set opp klokka
 	clock_t tick, tock;
 	tick = clock();
 
@@ -100,7 +100,7 @@ vec Tridiagonal::solve_spec(vec y) {
 		yn(i) = y(i) + i * yn(i - 1) / (i + 1.f);
 	}
 
-	// Sett opp løysingsvektoren
+	// Set opp løysingsvektoren
 	v(n - 1) = yn(n - 1) / bn(n - 1);
 
 	// Attover-steget
@@ -110,18 +110,51 @@ vec Tridiagonal::solve_spec(vec y) {
 
 	// Meld om tida
 	tock = clock();
-	cout << "solve() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
+	cout << "solve_spec() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
 
 	#ifdef DEBUG
-	cout << "DEBUG: solve_spec gav løysinga:" << endl;
-	v.print("v= (spec)");
+	cout << "DEBUG: solve_spec() gav løysinga:" << endl;
+	v.print("v=");
 	#endif
+
+	return v;
+}
+
+vec Tridiagonal::solve_lu(vec y) {
+	#ifdef DEBUG
+	cout << "DEBUG: solve_lu() kalla med argument:" << endl;
+	y.print("y=");
+	#endif
+
+	if (y.n_elem != n) {
+		throw invalid_argument("Ugild lengd på inngangsvektoren");
+	}
+
+	// Set opp A
+	mat A = mat(n, n);
+	A.zeros();
+	A.diag()   = b;
+	A.diag(-1) = a;
+	A.diag(1)  = c;
+
+	// Set opp klokka
+	clock_t tick, tock;
+	tick = clock();
+
+	// Gjer LU-faktorisering
+	mat L, U;
+	lu(L, U, A);
+	vec v = solve(U, solve(L, y));
+
+	// Meld om tida
+	tock = clock();
+	cout << "solve_lu() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
 
 	return v;
 }
 
 void Tridiagonal::print() {
 	#ifdef DEBUG
-	cout << "DEBUG: print kalla" << endl;
+	cout << "DEBUG: print() kalla" << endl;
 	#endif
 }

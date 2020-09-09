@@ -18,21 +18,23 @@ double u(double x);
 
 int main(int argc, char const *argv[]) {
 	if (argc < 5) {
-		cout << "Programmet løyser eit likningssett på tridiagonal matriseform" << endl << endl
+		((argc == 1) ? cout : cerr)
+			 << "Programmet løyser eit likningssett på tridiagonal matriseform på tri måtar." << endl << endl
 			 << "Bruk:" << endl
-			 << "  " << argv[0] << " e a b c" << endl << endl
+			 << "  " << argv[0] << " e a b c [LU=1]" << endl << endl
 			 << "der" << endl
 			 << "  n=10^e er storleiken på matrisa (n×n) og lengda på løysingsvektoren" << endl
 			 << "  a er talet i det nedre bandet i matrisa" << endl
 			 << "  b er talet i mellombandet i matrisa" << endl
-			 << "  c er talet i det øvre bandet i matrisa" << endl << endl
+			 << "  c er talet i det øvre bandet i matrisa" << endl
+			 << "  LU styrer om LU-steget vert køyrt (0: nei, 1: ja)" << endl << endl
 			 << "Resultata vert skrivne til filene vgen_n.csv (generell algoritme)," << endl
 			 << "vspec_n.csv (spesialisert algoritme) og u_n.csv (eksakt løysing)." << endl;
 		return argc == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
 
 	// Les kommandolinja
-	unsigned int n;
+	unsigned int n, lu = 1;
 	vec a, b, c;
 	try {
 		int i = stoi(argv[1]);
@@ -49,12 +51,16 @@ int main(int argc, char const *argv[]) {
 
 		c = vec(n - 1);
 		c.fill(stoi(argv[4]));
+
+		if (argc > 5) {
+			lu = stoi(argv[5]);
+		}
 	} catch (exception &e) {
-		cout << "Greidde ikkje å lesa argument: " << e.what() << endl;
+		cerr << "Greidde ikkje å lesa argument: " << e.what() << endl;
 		return EXIT_FAILURE;
 	}
 
-	// Sett opp vektorar til diskretiseringa av x og f(x)
+	// Set opp vektorar til diskretiseringa av x og f(x)
 	double h = 1 / (n + 1.f);
 	vec xi = vec(n);
 	vec y = vec(n);
@@ -64,18 +70,20 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// Vektorar til løysingane
-	vec vgen, vspec, ui;
+	vec vgen, vspec, vlu, ui;
 
-	// Sett opp Tridiagonal-klassa og løys likningane
+	// Set opp Tridiagonal-klassa og løys likningane
 	try {
 		Tridiagonal tridiag;
 		tridiag.init(n, a, b, c);
 
-		vgen = tridiag.solve(y);
-
+		vgen  = tridiag.solve_gen(y);
 		vspec = tridiag.solve_spec(y);
+		if (lu) {
+			vlu = tridiag.solve_lu(y);
+		}
 	} catch (exception &e) {
-		cout << "Eitkvart gjekk ikkje rett føre seg: " << e.what() << endl;
+		cerr << "Eitkvart gjekk ikkje rett føre seg: " << e.what() << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -89,7 +97,10 @@ int main(int argc, char const *argv[]) {
 	ui.print("u=");
 	#endif
 
+	// Jamfør 
+
 	// Skriv filer
+	cout << "Skriv løysingane til fil ..." << endl;
 	ostringstream os;
 	os << "vgen_" << n << ".csv";
 	vgen.save(os.str(), csv_ascii);
@@ -98,35 +109,15 @@ int main(int argc, char const *argv[]) {
 	os << "vspec_" << n << ".csv";
 	vspec.save(os.str(), csv_ascii);
 
+	if (lu) {
+		os.str("");
+		os << "vlu_" << n << ".csv";
+		vlu.save(os.str(), csv_ascii);
+	}
+
 	os.str("");
 	os << "u_" << n << ".csv";
 	ui.save(os.str(), csv_ascii);
-
-	return EXIT_SUCCESS;
-
-// LU i Armadillo
-{
-	arma_rng::set_seed_random();
-	mat A = randu<mat>(5, 5);
-	vec b = randu<vec>(5);
-
-	A.print("A=");
-	b.print("b=");
-
-	vec x = solve(A, b);
-	x.print("x=");
-
-	mat L, U, P;
-	lu(L, U, P, A);
-	L.print("L=");
-	U.print("U=");
-	P.print("P=");
-	(P*A-L*U).print("Test of LU");
-
-	U.save("U_mat.txt", csv_ascii);
-	b.save("b_vec.txt", csv_ascii);
-}
-// End LU
 
 	return EXIT_SUCCESS;
 }
