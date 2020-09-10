@@ -56,8 +56,8 @@ vec Tridiagonal::solve_gen(vec y) {
 	v(n - 1) = yn(n - 1) / bn(n - 1);
 
 	// Attover-steget
-	for (unsigned int i = n - 2; i; i--) {
-		v(i) = (yn(i) - c(i) * v(i + 1)) / bn(i);
+	for (unsigned int i = n - 1; i; i--) {
+		v(i - 1) = (yn(i - 1) - c(i - 1) * v(i)) / bn(i - 1);
 	}
 
 	// Meld om tida
@@ -104,7 +104,7 @@ vec Tridiagonal::solve_spec(vec y) {
 	v(n - 1) = yn(n - 1) / bn(n - 1);
 
 	// Attover-steget
-	for (unsigned int i = n - 1; i > 1; i--) {
+	for (unsigned int i = n - 1; i; i--) {
 		v(i - 1) = i / (i + 1.f) * (yn(i - 1) + v(i));
 	}
 

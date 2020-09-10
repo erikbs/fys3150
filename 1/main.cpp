@@ -41,7 +41,7 @@ int main(int argc, char const *argv[]) {
 		if (i < 1) {
 			throw invalid_argument("n må vera 1 eller høgre");
 		}
-		n = pow(10, i);
+		n = (unsigned int)pow(10, i);
 
 		a = vec(n - 1);
 		a.fill(stoi(argv[2]));
@@ -64,6 +64,7 @@ int main(int argc, char const *argv[]) {
 	double h = 1 / (n + 1.f);
 	vec xi = vec(n);
 	vec y = vec(n);
+
 	for (unsigned int i = 0; i < n; i++) {
 		xi(i) = (i + 1) * h;
 		y(i)  = h*h * f(xi(i));
@@ -97,7 +98,23 @@ int main(int argc, char const *argv[]) {
 	ui.print("u=");
 	#endif
 
-	// Jamfør 
+	// Jamfør løysingane
+	vec epsgen, epsspec, epslu;
+	epsgen  = log10(abs((vgen  - ui) / ui));
+	epsspec = log10(abs((vspec - ui) / ui));
+	if (lu) {
+		epslu = log10(abs((vlu - ui) / ui));
+	}
+	vgen.print("vegn");
+	ui.print("ui");
+	epsgen.print("egen");
+
+	cout << "Fråvik (relativ feil):" << endl;
+	cout << "  Generell algoritme:     " << max(epsgen) << endl;
+	cout << "  Spesialisert algoritme: " << max(epsspec) << endl;
+	if (lu) {
+		cout << "  Ved LU-faktorisering:   " << max(epslu) << endl;
+	}
 
 	// Skriv filer
 	cout << "Skriv løysingane til fil ..." << endl;
