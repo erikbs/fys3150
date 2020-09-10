@@ -99,21 +99,18 @@ int main(int argc, char const *argv[]) {
 	#endif
 
 	// Jamfør løysingane
-	vec epsgen, epsspec, epslu;
-	epsgen  = log10(abs((vgen  - ui) / ui));
-	epsspec = log10(abs((vspec - ui) / ui));
+	double egen, espec, elu;
+	egen  = abs((vgen  - ui) / ui).max();
+	espec = abs((vspec - ui) / ui).max();
 	if (lu) {
-		epslu = log10(abs((vlu - ui) / ui));
+		elu = abs((vlu - ui) / ui).max();
 	}
-	vgen.print("vegn");
-	ui.print("ui");
-	epsgen.print("egen");
 
 	cout << "Fråvik (relativ feil):" << endl;
-	cout << "  Generell algoritme:     " << max(epsgen) << endl;
-	cout << "  Spesialisert algoritme: " << max(epsspec) << endl;
+	cout << "  Generell algoritme:     " << log10(egen) << endl;
+	cout << "  Spesialisert algoritme: " << log10(espec) << endl;
 	if (lu) {
-		cout << "  Ved LU-faktorisering:   " << max(epslu) << endl;
+		cout << "  Ved LU-faktorisering:   " << log10(elu) << endl;
 	}
 
 	// Skriv filer
