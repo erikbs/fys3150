@@ -120,6 +120,7 @@ vec Tridiagonal::solve_spec(vec y) {
 	return v;
 }
 
+// Løys med LU-faktorisering
 vec Tridiagonal::solve_lu(vec y) {
 	#ifdef DEBUG
 	cout << "DEBUG: solve_lu() kalla med argument:" << endl;
@@ -149,6 +150,11 @@ vec Tridiagonal::solve_lu(vec y) {
 	// Meld om tida
 	tock = clock();
 	cout << "solve_lu() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
+
+	#ifdef DEBUG
+	cout << "DEBUG: solve_lu() gav løysinga:" << endl;
+	v.print("v=");
+	#endif
 
 	return v;
 }

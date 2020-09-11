@@ -27,11 +27,14 @@ int main(int argc, char const *argv[]) {
 			 << "  a er talet i det nedre bandet i matrisa" << endl
 			 << "  b er talet i mellombandet i matrisa" << endl
 			 << "  c er talet i det øvre bandet i matrisa" << endl
-			 << "  LU styrer om LU-steget vert køyrt (0: nei, 1: ja)" << endl << endl
+			 << "  LU styrer om det minnekrevjande LU-steget vert køyrt (0: nei, 1: ja)" << endl << endl
 			 << "Resultata vert skrivne til filene vgen_n.csv (generell algoritme)," << endl
 			 << "vspec_n.csv (spesialisert algoritme) og u_n.csv (eksakt løysing)." << endl;
 		return argc == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
+
+	// Slå av vitskapleg talformat på console out
+	cout << fixed;
 
 	// Les kommandolinja
 	unsigned int n, lu = 1;
@@ -136,10 +139,10 @@ int main(int argc, char const *argv[]) {
 	return EXIT_SUCCESS;
 }
 
-double f(double x) {
+inline double f(double x) {
 	return 100*exp(-10*x);
 }
 
-double u(double x) {
+inline double u(double x) {
 	return 1 - (1 - exp(-10))*x - exp(-10*x);
 }
