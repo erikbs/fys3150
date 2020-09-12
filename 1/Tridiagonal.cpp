@@ -25,9 +25,9 @@ void Tridiagonal::init(unsigned int n, vec a, vec b, vec c) {
 }
 
 // Generell utgåve av løysingsalgoritmen
-vec Tridiagonal::solve_gen(vec y) {
+vec Tridiagonal::solve_gn(vec y) {
 	#ifdef DEBUG
-	cout << "DEBUG: solve_gen() kalla med argument:" << endl;
+	cout << "DEBUG: solve_gn() kalla med argument:" << endl;
 	y.print("y=");
 	#endif
 
@@ -44,28 +44,26 @@ vec Tridiagonal::solve_gen(vec y) {
 	clock_t tick, tock;
 	tick = clock();
 
-	// Framover-steget
+	// Framlenges-steget
 	bn(0) = b(0);
 	yn(0) = y(0);
 	for (unsigned int i = 1; i < n; i++) {
-		bn(i) = b(i) - (this->a(i - 1) * c(i - 1)) / bn(i - 1);
-		yn(i) = y(i) - (this->a(i - 1) * yn(i - 1)) / bn(i - 1);
+		bn(i) = b(i) - (a(i - 1) * c(i - 1)) / bn(i - 1);
+		yn(i) = y(i) - (a(i - 1) * yn(i - 1)) / bn(i - 1);
 	}
 
-	// Set opp løysingsvektoren
+	// Baklenges-steget
 	v(n - 1) = yn(n - 1) / bn(n - 1);
-
-	// Attover-steget
 	for (unsigned int i = n - 1; i; i--) {
 		v(i - 1) = (yn(i - 1) - c(i - 1) * v(i)) / bn(i - 1);
 	}
 
 	// Meld om tida
 	tock = clock();
-	cout << "solve_gen() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
+	cout << "solve_gn() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
 
 	#ifdef DEBUG
-	cout << "DEBUG: solve_gen() gav løysinga:" << endl;
+	cout << "DEBUG: solve_gn() gav løysinga:" << endl;
 	v.print("v=");
 	#endif
 
@@ -73,9 +71,9 @@ vec Tridiagonal::solve_gen(vec y) {
 }
 
 // Spesialisert utgåve av løysingsalgoritmen
-vec Tridiagonal::solve_spec(vec y) {
+vec Tridiagonal::solve_sp(vec y) {
 	#ifdef DEBUG
-	cout << "DEBUG: solve_spec() kalla med argument:" << endl;
+	cout << "DEBUG: solve_sp() kalla med argument:" << endl;
 	y.print("y=");
 	#endif
 
@@ -92,28 +90,26 @@ vec Tridiagonal::solve_spec(vec y) {
 	clock_t tick, tock;
 	tick = clock();
 
-	// Framover-steget
-	bn(0) = b(0);
+	// Framlenges-steget
+	bn(0) = 2;
 	yn(0) = y(0);
 	for (unsigned int i = 1; i < n; i++) {
-		bn(i) = (i + 2) / (i + 1.f);
-		yn(i) = y(i) + i * yn(i - 1) / (i + 1.f);
+		bn(i) = (i + 2.f) / (i + 1);
+		yn(i) = y(i) + yn(i - 1) / bn(i - 1);
 	}
 
-	// Set opp løysingsvektoren
+	// Baklenges-steget
 	v(n - 1) = yn(n - 1) / bn(n - 1);
-
-	// Attover-steget
 	for (unsigned int i = n - 1; i; i--) {
-		v(i - 1) = i / (i + 1.f) * (yn(i - 1) + v(i));
+		v(i - 1) = (yn(i - 1) + v(i)) / bn(i - 1);
 	}
 
 	// Meld om tida
 	tock = clock();
-	cout << "solve_spec() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
+	cout << "solve_sp() løyste likninga på " << (double)(tock - tick) / CLOCKS_PER_SEC << " sekund" << endl;
 
 	#ifdef DEBUG
-	cout << "DEBUG: solve_spec() gav løysinga:" << endl;
+	cout << "DEBUG: solve_sp() gav løysinga:" << endl;
 	v.print("v=");
 	#endif
 
@@ -142,10 +138,10 @@ vec Tridiagonal::solve_lu(vec y) {
 	clock_t tick, tock;
 	tick = clock();
 
-	// Gjer LU-faktorisering
-	mat L, U;
-	lu(L, U, A);
-	vec v = solve(U, solve(L, y));
+	// Gjer LU-faktorisering (med P for å kunna nytta trimatu og trimatl, jf. Armadillo-dokumentasjonen)
+	mat L, U, P;
+	lu(L, U, P, A);
+	vec v = solve(trimatu(U), solve(trimatl(L), P*y));
 
 	// Meld om tida
 	tock = clock();

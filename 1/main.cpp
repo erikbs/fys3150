@@ -28,8 +28,8 @@ int main(int argc, char const *argv[]) {
 			 << "  b er talet i mellombandet i matrisa" << endl
 			 << "  c er talet i det øvre bandet i matrisa" << endl
 			 << "  LU styrer om det minnekrevjande LU-steget vert køyrt (0: nei, 1: ja)" << endl << endl
-			 << "Resultata vert skrivne til filene vgen_n.csv (generell algoritme)," << endl
-			 << "vspec_n.csv (spesialisert algoritme) og u_n.csv (eksakt løysing)." << endl;
+			 << "Resultata vert skrivne til filene v-gn_n.csv (generell algoritme)," << endl
+			 << "v-sp_n.csv (spesialisert algoritme), v-lu_n.csv (LU) og u_n.csv (eksakt løysing)." << endl;
 		return argc == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
 
@@ -74,17 +74,17 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// Vektorar til løysingane
-	vec vgen, vspec, vlu, ui;
+	vec v_gn, v_sp, v_lu, ui;
 
 	// Set opp Tridiagonal-klassa og løys likningane
 	try {
 		Tridiagonal tridiag;
 		tridiag.init(n, a, b, c);
 
-		vgen  = tridiag.solve_gen(y);
-		vspec = tridiag.solve_spec(y);
+		v_gn = tridiag.solve_gn(y);
+		v_sp = tridiag.solve_sp(y);
 		if (lu) {
-			vlu = tridiag.solve_lu(y);
+			v_lu = tridiag.solve_lu(y);
 		}
 	} catch (exception &e) {
 		cerr << "Eitkvart gjekk ikkje rett føre seg: " << e.what() << endl;
@@ -102,34 +102,34 @@ int main(int argc, char const *argv[]) {
 	#endif
 
 	// Jamfør løysingane
-	double egen, espec, elu;
-	egen  = abs((vgen  - ui) / ui).max();
-	espec = abs((vspec - ui) / ui).max();
+	double eps_gn, eps_sp, eps_lu;
+	eps_gn = abs((v_gn - ui) / ui).max();
+	eps_sp = abs((v_sp - ui) / ui).max();
 	if (lu) {
-		elu = abs((vlu - ui) / ui).max();
+		eps_lu = abs((v_lu - ui) / ui).max();
 	}
 
 	cout << "Fråvik (relativ feil):" << endl;
-	cout << "  Generell algoritme:     " << log10(egen) << endl;
-	cout << "  Spesialisert algoritme: " << log10(espec) << endl;
+	cout << "  Generell algoritme:     " << log10(eps_gn) << endl;
+	cout << "  Spesialisert algoritme: " << log10(eps_sp) << endl;
 	if (lu) {
-		cout << "  Ved LU-faktorisering:   " << log10(elu) << endl;
+		cout << "  Ved LU-faktorisering:   " << log10(eps_lu) << endl;
 	}
 
 	// Skriv filer
 	cout << "Skriv løysingane til fil ..." << endl;
 	ostringstream os;
-	os << "vgen_" << n << ".csv";
-	vgen.save(os.str(), csv_ascii);
+	os << "v-gn_" << n << ".csv";
+	v_gn.save(os.str(), csv_ascii);
 
 	os.str("");
-	os << "vspec_" << n << ".csv";
-	vspec.save(os.str(), csv_ascii);
+	os << "v-sp_" << n << ".csv";
+	v_sp.save(os.str(), csv_ascii);
 
 	if (lu) {
 		os.str("");
-		os << "vlu_" << n << ".csv";
-		vlu.save(os.str(), csv_ascii);
+		os << "v-lu_" << n << ".csv";
+		v_lu.save(os.str(), csv_ascii);
 	}
 
 	os.str("");
