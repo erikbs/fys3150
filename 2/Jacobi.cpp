@@ -13,12 +13,12 @@ Jacobi::Jacobi(mat &A) : A(A) {
 	n = A.n_rows;
 }
 
-Jacobi::Jacobi(double a, double d, unsigned int n) {
-	if (n < 2) {
-		throw invalid_argument("n lyt vera minst 2");
+Jacobi::Jacobi(double a, double d, unsigned int N) {
+	if (N < 3) {
+		throw invalid_argument("N lyt vera minst 3");
 	}
 
-	this->n = n;
+	n = N - 1;
 	A = mat(n, n, fill::zeros);
 	A.diag() += d;
 	A.diag(1) += a;
@@ -28,8 +28,8 @@ Jacobi::Jacobi(double a, double d, unsigned int n) {
 Jacobi::Jacobi(vec a, vec d) {
 	if (a.size() != d.size() - 1) {
 		throw invalid_argument("d lyt ha eitt og berre eitt tal meir enn a");
-	} else if (a.size() < 2) {
-		throw invalid_argument("n lyt vera minst 2");
+	} else if (d.size() < 2) {
+		throw invalid_argument("N lyt vera minst 3 (d.e. minste lengd på d er 2)");
 	}
 
 	n = d.size();
@@ -151,23 +151,20 @@ void Jacobi::rotate(unsigned int k, unsigned int l) {
 	double A_kk, A_ll, A_ik, A_il, R_ik, R_il;
 
 	// Finn cos(θ) og sin(θ)
-	if (A(k, l) != 0) {
-		tau = ( A(l, l) - A(k, k) ) / (2. * A(k, l));
+	tau = ( A(l, l) - A(k, k) ) / (2. * A(k, l));
 
-		// Vel den minste rota
-		if (tau > 0) {
-			t = 1. / (tau + sqrt(1 + tau*tau)); // == -τ + sqrt(1 + τ²)
-		} else {
-			t = -1. / (-tau + sqrt(1 + tau*tau)); // == -τ - sqrt(1 + τ²)
-		}
+	/* Om A(k, l) == 0 får me divisjon med 0 i tau, men algoritmen
+	   skal stansa innan 0 er høgste ikkje-diagonale element */
 
-		c = 1. / sqrt(1 + t*t);
-		s = c * t;
+	// Vel den minste rota
+	if (tau > 0) {
+		t = 1. / (tau + sqrt(1 + tau*tau)); // == -τ + sqrt(1 + τ²)
 	} else {
-		// Nemnaren i τ vert null, bruk kjend grenseverd i staden
-		c = 1;
-		s = 0;
+		t = -1. / (-tau + sqrt(1 + tau*tau)); // == -τ - sqrt(1 + τ²)
 	}
+
+	c = 1. / sqrt(1 + t*t);
+	s = c * t;
 
 	/* Rekna ut sjølve rotasjonen */
 
